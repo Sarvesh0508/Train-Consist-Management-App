@@ -1,59 +1,66 @@
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 public class TrainConsistManagementApp {
 
-    // Goods Bogie model [cite: 42, 47]
-    static class GoodsBogie {
-        String type; // [cite: 50]
-        String cargo; // [cite: 49]
+    static class PassengerBogie {
+        String type;
+        int capacity;
 
-        GoodsBogie(String type, String cargo) { // [cite: 51]
-            this.type = type; // [cite: 52]
-            this.cargo = cargo; // [cite: 53]
+        PassengerBogie(String type, int capacity) {
+            this.type = type;
+            this.capacity = capacity;
         }
     }
 
     public static void main(String[] args) {
         System.out.println("=====================================================");
-        System.out.println(" UC12 Safety Compliance Check for Goods Bogies "); // [cite: 60]
+        System.out.println(" UC13 - Performance Comparison (Loops vs Streams) ");
         System.out.println("=====================================================");
 
-        // 1. User prepares a list of goods bogies [cite: 67]
-        List<GoodsBogie> goodsBogies = new ArrayList<>(); // [cite: 64]
-        goodsBogies.add(new GoodsBogie("Cylindrical", "Petroleum")); // [cite: 99]
-        goodsBogies.add(new GoodsBogie("Open", "Coal")); // [cite: 100]
-        goodsBogies.add(new GoodsBogie("Box", "Grain")); // [cite: 101]
-        goodsBogies.add(new GoodsBogie("Cylindrical", "Coal")); // Invalid cargo [cite: 102]
-
-        System.out.println("Goods Bogies in Train:"); // [cite: 98]
-        for (GoodsBogie bogie : goodsBogies) {
-            System.out.println(bogie.type + " -> " + bogie.cargo);
+        // 1. Prepare a large dataset (e.g., 10,000 bogies)
+        List<PassengerBogie> bogieList = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
+            bogieList.add(new PassengerBogie("Sleeper", 72));
+            bogieList.add(new PassengerBogie("AC Chair", 56));
         }
 
-        // 2. System converts the list into a stream [cite: 68]
-        // 3. allMatch() checks every bogie against safety rules [cite: 69]
-        // 4. Conditional logic verifies cylindrical bogie cargo [cite: 70]
-        boolean isSafe = goodsBogies.stream().allMatch(bogie -> {
-            // Rule: Cylindrical bogies are meant only for liquids like petroleum [cite: 12, 90]
-            if (bogie.type.equalsIgnoreCase("Cylindrical")) {
-                return bogie.cargo.equalsIgnoreCase("Petroleum");
+        // --- LOOP PERFORMANCE MEASUREMENT ---
+        long startLoop = System.nanoTime(); // Start timestamp
+        List<PassengerBogie> loopFiltered = new ArrayList<>();
+        for (PassengerBogie b : bogieList) {
+            if (b.capacity > 60) {
+                loopFiltered.add(b);
             }
-            // Non-cylindrical bogies (Open, Box) allow different cargo types [cite: 115, 116]
-            return true;
-        });
+        }
+        long endLoop = System.nanoTime(); // End timestamp
+        long loopDuration = endLoop - startLoop;
 
-        // 5. If all checks pass, the train is marked safe [cite: 71]
-        // 6. Result is displayed to the user [cite: 72]
-        System.out.println("Safety Compliance Status: " + isSafe); // [cite: 103]
+        // --- STREAM PERFORMANCE MEASUREMENT ---
+        long startStream = System.nanoTime(); // Start timestamp
+        List<PassengerBogie> streamFiltered = bogieList.stream()
+                .filter(b -> b.capacity > 60)
+                .collect(Collectors.toList());
+        long endStream = System.nanoTime(); // End timestamp
+        long streamDuration = endStream - startStream;
 
-        if (isSafe) {
-            System.out.println("Train formation is SAFE.");
+        // 2. Display results and performance metrics
+        System.out.println("Total Bogies Processed: " + bogieList.size());
+        System.out.println("Filtered Count (Loop): " + loopFiltered.size());
+        System.out.println("Filtered Count (Stream): " + streamFiltered.size());
+
+        System.out.println("\nExecution Time Results:");
+        System.out.println("Traditional Loop Time: " + loopDuration + " ns");
+        System.out.println("Stream API Time      : " + streamDuration + " ns");
+
+        // 3. Performance Analysis
+        if (loopDuration < streamDuration) {
+            System.out.println("\nResult: Traditional Loop was faster in this run.");
         } else {
-            System.out.println("Train formation is NOT SAFE."); // [cite: 104]
+            System.out.println("\nResult: Stream API was faster in this run.");
         }
 
-        System.out.println("UC12 safety validation completed..."); // [cite: 105]
+        System.out.println("\nUC13 performance comparison completed...");
     }
 }
